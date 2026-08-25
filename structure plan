@@ -1,0 +1,68 @@
+Ứng dụng Donate
+1 user có 1 profile, 1 profile sẽ có 1 Page(page này để user thấy và donate, có trường is legit để check page này của streamer real k phải giả mạo)
+
+Flow là
+Người dùng vào page nhấn donate, hiện box nhập số tiền và nội dung. Nó sẽ tạo mã QR đúng bằng số tiền cho ngân hàng, nếu quét thành công ngân hàng báo ok thì tự gọi api donate/17/
+để push vào celery cái notification
+
+Notification sẽ có donater và receiver và số tiền và nội dung
+
+Signal có celery đc tạo thì push websocket hiện real time người gửi nội dung và cộng real time số tiền
+
+Ngoài ra cod tuỳ chọn nạp ở cài đặt k cần QR như chuyển khoản…
+
+0. User nhấp vào Page streamer (check block nếu của page đối với user)
+1. User nhấn số tiền và nội dung và nhấn "Tạo mã QR"
+1.5 Check block trước khi tạo mã QR
+2. Backend
+   - Tạo Order
+     order_id
+     user_id
+     amount
+     status = PENDING
+     expired_at = now + 15 phút
+     transaction_id = NULL
+
+3. Backend sinh QR
+   - STK
+   - Số tiền
+   - Nội dung = order_id
+ Merchan id tức là id đã đăng kí với ngân hàng, và qr luôn có cái này để ngân hàng biết là app nào mà gọi api webhook của app đó để thông báo gd thành công không
+
+4. Frontend hiển thị QR
+
+5. Nếu user thanh toán
+   - Ngân hàng gửi Webhook tới api của mình
+   - Payload:
+       order_id
+       transaction_id
+       amount
+       status = SUCCESS
+
+6. Backend
+Khi ngân hàng gửi webhook, backend lấy data thông qua api chính mình:
+   - Kiểm tra Order qua data[order_id]
+   - UPDATE order
+       status = SUCCESS
+       transaction_id = xxx
+   - Gửi WebSocket/Push Notification cho app với data ngân hàng gửi (số tiền donate)
+- cộng vào wallet ( 1 profile - 1 wallet) số tiền
+- Thêm vào lịch sử giao dịch thành công
+
+7. Nếu user không thanh toán
+   - Celery Beat chạy mỗi 5 giây
+   - Tìm các Order:
+       status = PENDING
+       expired_at <= now()
+
+   - UPDATE:
+       status = EXPIRED
+
+   - (Có thể gửi thông báo QR đã hết hạn nếu cần)
+
+========================
+API tạo page
+xóa page
+lấy thông báo
+
+Profile, page, order, notification,
