@@ -1,5 +1,6 @@
 from dj_rest_auth.views import LoginView,LogoutView
 from django.conf import settings
+from django.db.models import Model
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -7,8 +8,10 @@ from rest_framework.throttling import ScopedRateThrottle
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from custome_authen.google_login import FixedOAuth2Client
-from .models import Profile,PendingProfile
 from django.contrib.auth import logout as django_logout
+
+from user.models import Profile, Wallet
+
 
 #--LƯU Ý cái này dùng để xây http only cho web và tạo ra endpoint mới như api/auth/web/login
 #-- Còn khi xây mobile sẽ dùng endpoint bth là api/auth/login để trả về token trong json
@@ -76,7 +79,7 @@ class CookieGoogleLoginView(SocialLoginView):#ghi đè hàm login google để t
     throttle_scope='google_login'
 
     adapter_class = GoogleOAuth2Adapter
-    callback_url = 'https://socialnetwork.dpdns.org/google/callback/'
+    callback_url = 'https://localhost:3000/google/callback/'
     client_class = FixedOAuth2Client
 
     def post(self, request, *args, **kwargs):
@@ -91,24 +94,17 @@ class CookieGoogleLoginView(SocialLoginView):#ghi đè hàm login google để t
         extra = social_account.extra_data if social_account else {}
 
         # Tạo profile nếu chưa có
-        profile, created = Profile.objects.get_or_create(
+        Profile.objects.get_or_create(
             user=user,
             defaults={ #default là có chỉ tạo mà k có giá trị thì set, get thì k chạy
                 "auth_provider": "google",
                 "first_name": extra.get("given_name"),
                 "last_name": extra.get("family_name"),
+                "email": user.email,
+                "verified": True,  # Google đã tự verify email
             }
         )
-        # lấy extra data của google gán luôn vào profile, chỉ áp dụng với mới profile mới tạo ở trên, đã custome hay connect thì k đc
-        if created:
-            profile.first_name = extra.get("given_name")
-            profile.last_name = extra.get("family_name")
-            profile.auth_provider = "google"
-            profile.save()
-
-        # Xóa PendingProfile do đã set bên signal tạo user sẽ tạo pending profile
-        PendingProfile.objects.filter(user=user).delete()
-
+        Wallet.objects.get_or_create(user=user)
         if user:
             refreshToken = str(RefreshToken.for_user(user)) # tạo refresh token và gán vào cookie
             original_response.set_cookie(

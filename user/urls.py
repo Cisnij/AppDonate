@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/page/', PageModify.as_view(), name='api_page'),
     path('api/private-page/', PrivatePageModify.as_view(), name='api_private_page'),
     path('api/page/<int:page_id>/', PageView.as_view(), name='api_page_view'),
+    path('api/create-page/', CreatePage.as_view(), name='api_create_page'),
 ]

@@ -26,18 +26,6 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter): #chỉnh sủa login 
             )
         #========ĐÃ TỪNG LOGIN================
         if sociallogin.is_existing:# chạy trước hàm này và tự động query, ví dụ gmail a đã connect và đc tạo trc đây thì return k cần phải connect lại, nếu acc phụ thì check
-            '''flow là khi user acc phụ login vào ,check uid thấy đã login với gg trước đó(sociallogin.is_existing), lấy ra email chính user và so email vừa login 
-                ,không trùng thì lỗi login'''
-            existing_user = sociallogin.user #lấy ra user gắn với acc đã connect
-            if existing_user.email.lower() != email:  # email phụ → chặn
-                raise ImmediateHttpResponse(
-                    HttpResponseBadRequest(
-                        json.dumps({
-                            "error": "Email này là email phụ, vui lòng đăng nhập bằng email chính"
-                        }),
-                        content_type='application/json'
-                    )
-                )
             return  # email chính → cho qua return
 
         #============LẦN ĐẦU LOGIN==============
@@ -53,23 +41,13 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter): #chỉnh sủa login 
                 .distinct()
             )
             if unverified_users:
-                User.objects.filter(username=email,email__iexact=email).delete() 
-                EmailAddress.objects.filter(email__iexact=email,user_id__in=unverified_users,verified=False).delete() # xóa các email chưa verified vì email này đã verified
+                User.objects.filter(username=email,email__iexact=email).delete()
             return  # tạo account mới bình thường qua Google
 
         if email_obj.user.email == email: # kiểm tra nếu email của user = email truyền vào(tức là email chính)
             # Nếu đã xác minh, gắn social login vào user hiện có
             sociallogin.connect(request, email_obj.user)
             return
-        # email phụ
-        raise ImmediateHttpResponse(
-            HttpResponseBadRequest(
-                json.dumps({
-                    "error": "Email này là email phụ, vui lòng đăng nhập bằng email chính"
-                }),
-                content_type='application/json'
-            )
-        )
 
     # đồng bộ tên email là tên ng dùng khi đăng nhập google
     def populate_user(self, request, sociallogin, data): #user lần đầu đăng nhập

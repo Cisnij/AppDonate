@@ -1,4 +1,4 @@
-from AppDonate.User.models import Profile, Page
+from .models import *
 from rest_framework import serializers
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -31,43 +31,44 @@ class PrivateProfileSerializer(serializers.ModelSerializer):
         fields = ('email', 'phone_number','birth')
 
 class PageSerializer(serializers.ModelSerializer):
-    profile =ProfileSerializer(read_only=True)
-    current_amount = serializers.SerializerMethodField()
+    profile =ProfileSerializer(source='profile.page',read_only=True)
     accumulated_amount = serializers.SerializerMethodField()
-    bank_account_number = serializers.SerializerMethodField()
-    bank_account_name = serializers.SerializerMethodField()
-    bank_code = serializers.SerializerMethodField()
+    withdraw_bank_account_number = serializers.SerializerMethodField()
+    withdraw_bank_account_name = serializers.SerializerMethodField()
+    withdraw_bank_code = serializers.SerializerMethodField()
     class Meta:
         model = Page
         fields = "__all__"
-        read_only_fields = ('profile','is_legit','is_active','current_amount','accumulated_amount','bank_account_number','bank_account_name','bank_code')
-    def get_current_amount(self,obj):
-        request =self.context.get('request')
-        if request and request.user.is_authenticated and request.user == obj.profile.user:
-            return obj.current_amount
-        return None
+        read_only_fields = ('profile','is_legit','is_active','accumulated_amount','withdraw_bank_account_number','withdraw_bank_account_name','withdraw_bank_code')
     def get_accumulated_amount(self,obj):
         request =self.context.get('request')
         if request and request.user.is_authenticated and request.user == obj.profile.user:
             return obj.accumulated_amount
         return None
-    def get_bank_account_number(self,obj):
+    def get_withdraw_bank_account_number(self,obj):
         request =self.context.get('request')
         if request and request.user.is_authenticated and request.user == obj.profile.user:
-            return obj.bank_account_number
+            return obj.withdraw_bank_account_number
         return None
-    def get_bank_account_name(self,obj):
+    def get_withdraw_bank_account_name(self,obj):
         request =self.context.get('request')
         if request and request.user.is_authenticated and request.user == obj.profile.user:
-            return obj.bank_account_name
+            return obj.withdraw_bank_account_name
         return None
-    def get_bank_code(self,obj):
+    def get_withdraw_bank_code(self,obj):
         request =self.context.get('request')
         if request and request.user.is_authenticated and request.user == obj.profile.user:
-            return obj.bank_code
+            return obj.withdraw_bank_code
         return None
 
 class PrivatePageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
         fields = ('current_amount','accumulated_amount','bank_account_number','bank_account_name','bank_code')
+
+class WalletSerializer(serializers.ModelSerializer):
+    user = ProfileSerializer(source='user.profile',read_only=True)
+    class Meta:
+        model = Wallet
+        fields = "__all__"
+        read_only_fields = ('user','balance')

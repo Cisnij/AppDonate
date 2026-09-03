@@ -3,11 +3,8 @@
 
 Flow là
 Người dùng vào page nhấn donate, hiện box nhập số tiền và nội dung. Nó sẽ tạo mã QR đúng bằng số tiền cho ngân hàng, nếu quét thành công ngân hàng báo ok thì tự gọi api donate/17/
-để push vào celery cái notification
+để push vào celery cái notification và khi tạo thành công thì broadcast qua websocket để page đó tháy user nào donate bao nhiêu content là gì
 
-Notification sẽ có donater và receiver và số tiền và nội dung
-
-Signal có celery đc tạo thì push websocket hiện real time người gửi nội dung và cộng real time số tiền
 
 Ngoài ra cod tuỳ chọn nạp ở cài đặt k cần QR như chuyển khoản…
 
@@ -39,6 +36,7 @@ Ngoài ra cod tuỳ chọn nạp ở cài đặt k cần QR như chuyển khoả
        amount
        status = SUCCESS
 
+
 6. Backend
 Khi ngân hàng gửi webhook, backend lấy data thông qua api chính mình:
    - Kiểm tra Order qua data[order_id]
@@ -46,8 +44,9 @@ Khi ngân hàng gửi webhook, backend lấy data thông qua api chính mình:
        status = SUCCESS
        transaction_id = xxx
    - Gửi WebSocket/Push Notification cho app với data ngân hàng gửi (số tiền donate)
-- cộng vào wallet ( 1 profile - 1 wallet) số tiền
-- Thêm vào lịch sử giao dịch thành công
+    - sau đó tạo transaction với cái bank id đó và liên kết tới order đó
+    - cộng vào wallet ( 1 profile - 1 wallet/ 1 profile -1 page - 1 wallet) số tiền đó
+
 
 7. Nếu user không thanh toán
    - Celery Beat chạy mỗi 5 giây
@@ -60,6 +59,7 @@ Khi ngân hàng gửi webhook, backend lấy data thông qua api chính mình:
 
    - (Có thể gửi thông báo QR đã hết hạn nếu cần)
 
+Tất cả đều triển khai theo cách viết code chuẩn prod chia làm đầy đủ các file selector/services...
 ========================
 API tạo page
 xóa page

@@ -433,11 +433,6 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000  # restart worker sau 1000 task tránh 
 CELERY_TASK_ACKS_LATE = True        # chỉ xác nhận task sau khi chạy xong,nếu chưa xong mà lỗi thì retry, tránh mất task khi worker crash
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # mỗi worker chỉ lấy 1 task, tránh 1 worker ôm hết
 
-# queue riêng cho từng loại task
-CELERY_TASK_ROUTES = {
-    'api.tasks.push_notification_task': {'queue': 'notifications'},
-    'api.tasks.send_email_task': {'queue': 'emails'},
-}
 
 
 

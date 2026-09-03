@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'notification',
     'user',
     'order',
+    'relationship',
     'cacheops',
     'silk',
     'corsheaders',
@@ -198,5 +199,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #lưu ảnh
 MEDIA_ROOT=os.path.join(BASE_DIR,'media') #basedir là tìm trong thư mục gốc có media
 MEDIA_URL='/media/' #ví dụ media/abc.jpg
+
+# Platform Bank Configuration for QR Code Generation
+PLATFORM_BANK_CODE = env('PLATFORM_BANK_CODE', default='MB')
+PLATFORM_BANK_ACCOUNT = env('PLATFORM_BANK_ACCOUNT', default='123456789')
+PLATFORM_BANK_ACCOUNT_NAME = env('PLATFORM_BANK_ACCOUNT_NAME', default='NGUYEN VAN A')
+
+# SePay Money Transfer API (dùng cho chức năng rút tiền)
+SEPAY_API_TOKEN = env('SEPAY_API_TOKEN', default='')
+SEPAY_TRANSFER_URL = env('SEPAY_TRANSFER_URL', default='https://my.sepay.vn/api/v1/transfer')
+
+# Celery Configuration
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://redis:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://redis:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERY_BEAT_SCHEDULE = {
+    'expire_pending_orders_every_5s': {
+        'task': 'order.tasks.expire_pending_orders_task',
+        'schedule': 5.0,
+    },
+}
 
 from .settings_authentication import *

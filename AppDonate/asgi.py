@@ -13,4 +13,19 @@ from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AppDonate.settings')
 
-application = get_asgi_application()
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from channels.security.websocket import AllowedHostsOriginValidator
+from websocket.routing import wsPattern
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),  # Xử lý các yêu cầu HTTP thông thường
+    "websocket": AllowedHostsOriginValidator(  # Bảo vệ các kết nối WebSocket từ các nguồn không được phép
+        AuthMiddlewareStack(  # Xử lý xác thực người dùng cho WebSocket
+            URLRouter(
+                wsPattern  # Đây là danh sách các đường dẫn WebSocket đã định nghĩa trong routing.py
+            )
+        )
+    ),
+
+})
