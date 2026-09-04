@@ -2,7 +2,7 @@
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 from elasticsearch_dsl import analyzer, token_filter
-from user.models import Page
+from apps.users.models import Page
 
 #=================================FILTER để lọc ra từ từ tìm kiếm=================================
 # Bộ lọc chuyển tiếng Việt có dấu -> không dấu, preserver để lưu cả bản k dấu và có dấu
