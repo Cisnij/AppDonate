@@ -24,7 +24,7 @@ class WithdrawSerializer(serializers.ModelSerializer): # dùng để hiển th�
         fields = "__all__"
         read_only_fields = ["user", "withdraw_request_id", "status", "created_at"]
 
-'''serializer tự khai báo k dựa vào model'''
+'''serializer tự khai báo k dựa vào model, thường dùng khi không gắn với model nào '''
 class WithdrawRequestSerializer(serializers.Serializer): # validate đầu vào khi điển số tiền rút
     amount = serializers.DecimalField(
         max_digits=15,
