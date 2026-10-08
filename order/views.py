@@ -24,15 +24,15 @@ class UserDonateHistory(generics.ListAPIView): #lịch sử donate của user
         return get_user_transaction(user_id=user_id)
 
 
-class DonateForPage(generics.CreateAPIView): #dontate, tạo order và tạo qr dựa trên order và bank cuả mình
+class DonateForPage(generics.CreateAPIView): #donate, tạo order và tạo qr dựa trên order và bank cuả mình
     permission_classes = [IsAuthenticated, IsNotBlocked]
     serializer_class = CreateOrderSerializer
     
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        serializer = self.get_serializer(data=request.data) #validate đầu vào của tạo order khi user nhấn donate
+        serializer.is_valid(raise_exception=True) # check các data valid chưa
         
-        page_id = self.kwargs.get('page_id') or serializer.validated_data.get('page_id')
+        page_id = self.kwargs.get('page_id') or serializer.validated_data.get('page_id') # lấy ở cả url/ data
         user_id = request.user.id
         amount = serializer.validated_data["amount"]
         content = serializer.validated_data.get("content", "")
@@ -57,7 +57,7 @@ class BankWebhookAPIView(APIView): # endpoint xử lý webhook
     authentication_classes = []
 
     def post(self, request, *args, **kwargs):
-        serializer = WebhookSerializer(data=request.data) # validate data mà webhook nhận từ bạnk
+        serializer = WebhookSerializer(data=request.data) # validate data mà webhook nhận từ bạnk 
         if serializer.is_valid():
             try:
                 process_bank_webhook(serializer.validated_data) # xử lý update order, tạo transaction, update wallet
@@ -85,7 +85,7 @@ class WithdrawMoney(APIView):
     def post(self, request, *args, **kwargs):
         #user nhập amount -> APIView -> serializer validate data truyền vào là amount -> APIView
         serializer = WithdrawRequestSerializer(data=request.data) # user nhập và lấy ra tiền sau validate serializer(cách dùng serializer trong api view)
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(raise_exception=True) # báo lỗi nếu có, chạy tiếp nếu data valid
 
         try: # check user phải có page
             page = request.user.profile.page

@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+#urls gốc gom toàn bộ 
 urlpatterns = [
     path('supremacy/admin/', admin.site.urls),
     path("",include('notification.urls')),

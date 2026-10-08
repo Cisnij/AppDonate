@@ -87,8 +87,8 @@ def process_bank_webhook(data: dict) -> None:
             'content': order.content or '',
         }
        # vì đang bọc trong transaction nên cần transaction commit hoàn thành thì mới gọi celery push, nếu chưa hoàn thành chưa có db mà push thì lỗi(có thẻ đem ra ngoài transaction để k dùng)
-        transaction.on_commit(
-            lambda: broadcast_donation_task.delay(order.donatee_page_id, donation_data)
+        transaction.on_commit( # thực thị transaction
+            lambda: broadcast_donation_task.delay(order.donatee_page_id, donation_data)# dùng celery làm hàng đợi
         )
 
     except Order.DoesNotExist:
