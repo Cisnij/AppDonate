@@ -1,11 +1,14 @@
 import logging
 
+import requests
 from celery import shared_task
 from channels.layers import get_channel_layer
+from django.db import transaction
 from django.utils import timezone
 from django.conf import settings
 from asgiref.sync import async_to_sync
 from order.models import Order, WithdrawRequest
+from user.models import Wallet
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +106,7 @@ def process_withdrawal_task(self, withdraw_request_id: str):
         # Lỗi không mong đợi thì đánh dấu FAILED, không retry
         logger.exception(f"[Withdraw] {withdraw_request_id} unexpected error: {exc}")
 
-        # Hoàn tiền vào wallet
+        # Hoàn tiền vào wallet, try/except k có revert khi fail
         with transaction.atomic():
             wallet = Wallet.objects.select_for_update().get(profile=wr.page.profile)  # lock row
             wallet.balance += wr.amount  # add đúng bằng số tiền từ request
