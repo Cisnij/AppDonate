@@ -59,7 +59,23 @@ Khi ngân hàng gửi webhook, backend lấy data thông qua api chính mình:
 
    - (Có thể gửi thông báo QR đã hết hạn nếu cần)
 
-Tất cả đều triển khai theo cách viết code chuẩn prod chia làm đầy đủ các file selector/services...
+Flow rút money:
+1.Page gọi API rút tiền và điền số tiền rút, API lấy ra thông tin wallet của page.profile(1-1)
+2. sau đó gọi service validate page có cập nhật thông tin bank chưa, kiểm tra số dư wallet phải lớn hơn số tiền rút
+3. sau đó nếu validate thành công thì tạo withdrawrequest và gọi celery push vào hàng chờ và trừ tiền wallet - amount
+4. return ra json báo request đã được gửi
+5. celery tới luọt kích hoạt kiểm tra withdrawrequest có pending hay không, sau đó thực hiện gọi api tới sepay chuyển tiền từ bankaccount app sang bankaccount user đó
+    nếu thành công thì update withdrawrequest = success
+    không thành công thì wallet + amount để hoàn lại tiền nếu có lỗi
+
+flow donate ngắn gọn
+1: user click vào page và nhấn donate gồm tiền và nội dung, gọi API tới tạo order
+2: API lấy ra page, kiểm tra block, sau đó gọi service tạo order
+3: service thực hiện tạo order của user với page với số tiền, nội dung, status= pending
+4: service thực hiện tạo mã QR chuyển tiền tới bankaccount của app
+5. User thực hiện quét mã và chuyển tiền
+6. Ngân hàng nhạn đc tiền và đọc nội dung chứa merchant_id, gọi webhook của app
+7. Webhook được gọi lấy ra nội dung của ngân hàng trả về và thực hiện update order= success, tạo transaction và cộng tiền vào wallet
 ========================
 API tạo page
 xóa page
